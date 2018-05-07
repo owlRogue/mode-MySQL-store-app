@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/owlRogue/node-MySQL-store-app#readme",
   "dependencies": {
+    "express": "^4.16.3",
+    "fs": "0.0.1-security",
     "inquirer": "^5.2.0",
     "mysql": "^2.15.0"
   }

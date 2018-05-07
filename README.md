@@ -167,3 +167,43 @@ After completing the homework please add the piece to your portfolio. Make sure 
 If you have any questions about this project or the material we have covered, please post them in the community channels in slack so that your fellow developers can help you! If you're still having trouble, you can come to office hours for assistance from your instructor and TAs.
 
 **Good Luck!**
+
+
+
+  function runSearch() {
+    inquirer
+      .prompt([
+        {
+            name: "add products",
+            type: "list",
+            message: "Enter a product ID to add it to your cart",
+            choices: "1", "2", "3". "4". "5"
+          validate: function(value) {
+            if (isNaN(value) === true) {
+              return false;
+            }
+            return true;
+          }
+        },
+        {
+          name: "add units",
+          type: "input",
+          message: "How many units would you like to purchase?",
+          validate: function(value) {
+            if (isNaN(value) === true) {
+              return false;
+            }
+            return true;
+          }
+        }
+      ])
+      .then(function(answer) {
+        var query = "SELECT item_id, product_name, department_name, price FROM products";
+        connection.query(query, function(err, res) {
+          for (var i = 0; i < res.length; i++) {
+            console.log("\n" + "|| ID: " + res[i].item_id + " || Product: " + res[i].product_name + " || Department: " + res[i].department_name + " || Price: " + res[i].price + " ||");
+          }
+        });
+        runSearch();
+      });
+  }
