@@ -1,17 +1,26 @@
-var connection = require("/Users/koltynpalmer/dev/class_dev/homework/node-MySQL-store-app/config/connection.js");
-var mysql = require("mysql");
-var inquirer = require("inquirer");
+const connection = require("/Users/koltynpalmer/dev/class_dev/homework/node-MySQL-store-app/config/connection.js");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+let allresults
 
 start();
 
 function start() {
+    console.log("Loading all products...\n");
     var query = "SELECT item_id, product_name, department_name, price FROM products";
     connection.query(query, function(err, res) {
-      for (var i = 0; i < res.length; i++) {
-        var allres = res[i];
-        var itemIds = allres.item_id;
-        console.log("\n" + "|| ID: " + itemIds + " || Product: " + res[i].product_name + " || Department: " + res[i].department_name + " || Price: " + res[i].price + " ||");
+        // if (err) throw err;
+        // Log all results of the SELECT statement
+        for (var i = 0; i < res.length; i++) {
+
+        allres = JSON.stringify(res[i]);
+            console.log(allres);
+        itemIds = allres.item_id;
+        productNames = allres.product_name;
+
+        console.log("\n" + "|| ID: " + itemIds + " || Product: " + productNames + " || Department: " + res[i].department_name + " || Price: $" + res[i].price + " ||");
       }
+
       orderPrompt();
     });
   }
@@ -20,7 +29,7 @@ function start() {
 function orderPrompt() {
     // prompt for which products are available for purchase
     inquirer
-      .prompt([
+      .prompt(
         {
           name: "item_id",
           type: "input",
@@ -30,35 +39,29 @@ function orderPrompt() {
           name: "units",
           type: "input",
           message: "How many units would you like to order?"
-        },
-        // {
-        //   name: "startingBid",
-        //   type: "input",
-        //   message: "What would you like your starting bid to be?",
-        //   validate: function(value) {
-        //     if (isNaN(value) === false) {
-        //       return true;
-        //     }
-        //     return false;
-        //   }
-        // }
-      ])
-      .then(function(answer) {
-        // when finished prompting, insert a new item into the db with that info
+        }
+    )
+    .then(function(answer) {
         connection.query(
-          "INSERT INTO products_sold SET ? ",
-          {
-              item_id: answer.item_id,
-              units_sold: answer.units
-          },
-          function(err) {
+            
+            "UPDATE products SET ??? WHERE stock_quantity > ? ",
+            {
+                item_id: answer.item_id,
+                stock_quantity: res.stock_quantity - answer.units,
+                sold_units: res.sold_units + answer.units
+                
+            },
+            function(err) {
             if (err) throw err;
-            console.log("Your ordered was placed successfully!");
+                console.log("Insufficienct quantity remaining");
+                console.log("|| Item ID: "+answer.item_id+" || Product Name: "+res.product_name+" ||");  
+                console.log("Total: " + answer.units * res.price);
+                console.log("Your ordered was placed successfully!");
+          
+
             // re-prompt the user for if they want to bid or post
             start();
           }
         );
-      });
-  }
-
-//   (SELECT product_name FROM products JOIN products_sold ON products.item_id = products_sold.item_id)
+    });
+    }
