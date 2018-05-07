@@ -1,7 +1,7 @@
 const connection = require("/Users/koltynpalmer/dev/class_dev/homework/node-MySQL-store-app/config/connection.js");
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-let allresults
+let allresults;
 
 start();
 
@@ -9,27 +9,23 @@ function start() {
     console.log("Loading all products...\n");
     var query = "SELECT item_id, product_name, department_name, price FROM products";
     connection.query(query, function(err, res) {
-        // if (err) throw err;
-        // Log all results of the SELECT statement
         for (var i = 0; i < res.length; i++) {
 
-        allres = JSON.stringify(res[i]);
-            console.log(allres);
+        allres = (res[i]);
         itemIds = allres.item_id;
         productNames = allres.product_name;
+        departmentNames = allres.department_name;
+        itemPrice = allres.price;
 
-        console.log("\n" + "|| ID: " + itemIds + " || Product: " + productNames + " || Department: " + res[i].department_name + " || Price: $" + res[i].price + " ||");
+        console.log("\n" + "|| ID: " + itemIds + " || Product: " + productNames + " || Department: " + departmentNames + " || Price: $" + itemPrice + " ||");
       }
-
       orderPrompt();
     });
   }
 
-// function to handle purchasing new items
 function orderPrompt() {
-    // prompt for which products are available for purchase
     inquirer
-      .prompt(
+      .prompt([
         {
           name: "item_id",
           type: "input",
@@ -40,26 +36,27 @@ function orderPrompt() {
           type: "input",
           message: "How many units would you like to order?"
         }
-    )
+      ])
     .then(function(answer) {
+        console.log("|| Item ID: "+answer.item_id+" || Product Name: "+allres.product_name+" ||");  
+        console.log("Total: " + answer.units * itemPrice);
         connection.query(
-            
-            "UPDATE products SET ??? WHERE stock_quantity > ? ",
+            "REPLACE INTO products SET ? ",
             {
                 item_id: answer.item_id,
-                stock_quantity: res.stock_quantity - answer.units,
-                sold_units: res.sold_units + answer.units
+                // stock_quantity: stock_quantity - answer.units,
+                sold_units: answer.units
                 
             },
             function(err) {
-            if (err) throw err;
+                if (err) throw err;
+                console.log("Your ordered was not placed successfully...");
+                
                 console.log("Insufficienct quantity remaining");
-                console.log("|| Item ID: "+answer.item_id+" || Product Name: "+res.product_name+" ||");  
-                console.log("Total: " + answer.units * res.price);
+
+
                 console.log("Your ordered was placed successfully!");
           
-
-            // re-prompt the user for if they want to bid or post
             start();
           }
         );
