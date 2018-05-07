@@ -20,7 +20,7 @@ function displayAll() {
     var query = "SELECT item_id, product_name, department_name, price FROM products";
     connection.query(query, function(err, res) {
       for (var i = 0; i < res.length; i++) {
-        console.log("Product: " + res[i].product_name + " || Department: " + res[i].department_name + " || Price: " + res[i].price);
+        console.log("ID: " + res[i].item_id + " || Product: " + res[i].product_name + " || Department: " + res[i].department_name + " || Price: " + res[i].price);
       }
       runSearch();
     });
