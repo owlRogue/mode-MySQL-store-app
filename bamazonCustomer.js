@@ -1,87 +1,98 @@
-const connection = require("/Users/koltynpalmer/dev/class_dev/homework/node-MySQL-store-app/config/connection.js");
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-let allresults;
+const connection = require("/Users/koltynpalmer/dev/class_dev/homework/node-MySQL-store-app/config/connection.js");
 
 start();
 
 function start() {
-    console.log("Loading all products...\n");
-    var query = "SELECT item_id, product_name, department_name, price FROM products";
-    connection.query(query, function(err, res) {
-        for (var i = 0; i < res.length; i++) {
+  console.log("Loading all products...\n");
+  var query = "SELECT * FROM products";
+  connection.query(query, function (err, results) {
+    if (err) throw err;
+    for (var i = 0; i < results.length; i++) {
+      console.log("\n" + "|| ID: " + results[i].item_id + " || Product: " + results[i].product_name + " || Department: " + results[i].department_name + " || Price: $" + results[i].price + " ||");
+    }
+  });
+  orderPrompt();
+};
 
-        allres = (res[i]);
-        itemIds = allres.item_id;
-        productNames = allres.product_name;
-        departmentNames = allres.department_name;
-        itemPrice = allres.price;
-
-        console.log("\n" + "|| ID: " + itemIds + " || Product: " + productNames + " || Department: " + departmentNames + " || Price: $" + itemPrice + " ||");
-      }
-      orderPrompt();
-    });
-  }
 
 function orderPrompt() {
+  // query the database for all items being auctioned
+  connection.query("SELECT * FROM products", function (err, results) {
+    if (err) throw err;
+    // once you have the items, prompt the user for which they'd like to bid on
     inquirer
-      .prompt([
-        {
-          name: "item_id",
-          type: "input",
-          message: "What is the ID for the item you would like to purchase?"
+      .prompt([{
+          name: 'item_id',
+          type: 'input',
+          message: 'Type the ID for the item you would like to purchase?'
         },
         {
-          name: "units",
-          type: "input",
-          message: "How many units would you like to order?"
+          name: 'units',
+          type: 'input',
+          message: 'How many units would you like to order?'
         }
       ])
-    .then(function(answer) {
-        console.log("|| Item ID: "+answer.item_id+" || Product Name: "+allres.product_name+" ||");  
-        console.log("Total: " + answer.units * itemPrice);
-        connection.query(
-            "REPLACE INTO products SET ? ",
-            {
-                item_id: answer.item_id,
-                // stock_quantity: stock_quantity - answer.units,
-                sold_units: answer.units
-                
-            },
-            function(err) {
-                if (err) throw err;
-                console.log("Your ordered was not placed successfully...");
-                
-                console.log("Insufficienct quantity remaining");
+      .then(function (answer) {
+        // gather data on selected product
+        var selectedProduct;
+        var stock;
+        var found = false;
+        console.log("answer.item_id: " + answer.item_id)
 
-                console.log("Your ordered was placed successfully!");
-          
-            start();
+        for (var i = 0; i < results.length; i++) {
+          console.log("stocked item id: " + results[i].item_id);
+          console.log("selected item id: " + answer.item_id);
+          if (results[i].item_id == answer.item_id) {
+            found = true;
+            selectedProduct = results[i];
+            name = results[i].product_name;
+            stock = results[i].stock_quantity;
+            itemID = results[i].item_id;
+            console.log("name: " + name + " || stock: " + stock);
+            break;
+            // console.log("results.item_id: " + itemID);
+            // console.log("equals validation: " + (itemID == answer.item_id));
+            // console.log(selectedProduct.stock_quantity + " > " + answer.units);
+            // console.log("surplus after sale: " + (selectedProduct.stock_quantity - answer.units));
           }
-        );
-    });
-    }
+        }
+        if (!found) {
+          console.log("not found")
+        };
 
+        // see if product is in stock for quantity desired
+        if (stock > answer.units) {
+          // const inStock = nowInStock;
+          var nowInStock = ((selectedProduct.stock_quantity) - (parseInt(answer.units)));
+          console.log("nowInStock "+nowInStock);
+          var sold = ((parseInt(answer.units))+(selectedProduct.sold_units));
+          // console.log("sold: "+sold);
+          // if stock then update db
+          connection.query(
+            "UPDATE products SET ? AND ? WHERE ?", [{
+                stock_quantity: nowInStock
+              },
+              {
+                sold_units: sold
+              },
+              {
+                item_id: answer.item_id
+              }
+            ],
 
-    
-    // || ID: 5 || Product: Solmate Socks || Department: clothing || Price: $12.54 ||
-
-    // || ID: 6 || Product: 2018 Burton Step-In Bindings || Department: sports || Price: $109.39 ||
-    
-    // || ID: 7 || Product: Pair of Thieves Socks || Department: clothing || Price: $12 ||
-    
-    // || ID: 8 || Product: Sunwarrior Classic Vegan Protein 16oz || Department: grocery || Price: $35.99 ||
-    
-    // || ID: 9 || Product: HeliHuman G+Drone || Department: electronics || Price: $9999.99 ||
-
-// || ID: 10 || Product: Hermione's Time Turner || Department: enchanted || Price: $1357.91 ||
-
-// || ID: 11 || Product: Bag of Holding || Department: enchanted || Price: $2468.02 ||
-// ? What is the ID for the item you would like to purchase? 3
-// ? How many units would you like to order? 1
-// || Item ID: 3 || Product Name: Bag of Holding ||
-// Total: 2468.02
-// Your ordered was not placed successfully...
-// Insufficienct quantity remaining
-// Your ordered was placed successfully!
-// Loading all products...
+            function (error) {
+              if (error) throw err;
+              console.log("Order placed successfully!");
+              start();
+            }
+          );
+        } else {
+          // if not in stock, give error message
+          console.log("Insufficient quantity!");
+          start();
+        }
+      });
+  });
+}
