@@ -18,10 +18,8 @@ function start() {
 
 
 function orderPrompt() {
-  // query the database for all items being auctioned
   connection.query("SELECT * FROM products", function (err, results) {
     if (err) throw err;
-    // once you have the items, prompt the user for which they'd like to bid on
     inquirer
       .prompt([{
           name: 'item_id',
@@ -35,7 +33,6 @@ function orderPrompt() {
         }
       ])
       .then(function (answer) {
-        // gather data on selected product
         var selectedProduct;
         var stock;
         var found = false;
@@ -52,10 +49,6 @@ function orderPrompt() {
             itemID = results[i].item_id;
             console.log("name: " + name + " || stock: " + stock);
             break;
-            // console.log("results.item_id: " + itemID);
-            // console.log("equals validation: " + (itemID == answer.item_id));
-            // console.log(selectedProduct.stock_quantity + " > " + answer.units);
-            // console.log("surplus after sale: " + (selectedProduct.stock_quantity - answer.units));
           }
         }
         if (!found) {
@@ -65,11 +58,11 @@ function orderPrompt() {
         // see if product is in stock for quantity desired
         if (stock > answer.units) {
           // const inStock = nowInStock;
-          var nowInStock = ((selectedProduct.stock_quantity) - (parseInt(answer.units)));
-          console.log("nowInStock "+nowInStock);
-          var sold = ((parseInt(answer.units))+(selectedProduct.sold_units));
-          // console.log("sold: "+sold);
+          var nowInStock = ((parseInt(selectedProduct.stock_quantity)) - (parseInt(answer.units)));
+          var sold = ((parseInt(answer.units)) + (parseInt(selectedProduct.sold_units)));
           // if stock then update db
+          console.log("nowInStock " + nowInStock);
+          console.log("sold: " + sold);
           connection.query(
             "UPDATE products SET ? AND ? WHERE ?", [{
                 stock_quantity: nowInStock
@@ -81,7 +74,6 @@ function orderPrompt() {
                 item_id: answer.item_id
               }
             ],
-
             function (error) {
               if (error) throw err;
               console.log("Order placed successfully!");
