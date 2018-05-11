@@ -9,9 +9,15 @@ function start() {
   var query = "SELECT * FROM products";
   connection.query(query, function (err, results) {
     if (err) throw err;
+    console.log("\n \n");
+    console.log("-------------------------------------------------------------------------------------------------")
+    console.log("-------------------------------------------------------------------------------------------------")
     for (var i = 0; i < results.length; i++) {
-      console.log("\n" + "|| ID: " + results[i].item_id + " || Product: " + results[i].product_name + " || Department: " + results[i].department_name + " || Price: $" + results[i].price + " ||");
+      console.log("|| ID: " + results[i].item_id + " || Product: " + results[i].product_name + " || Department: " + results[i].department_name + " || Price: $" + results[i].price + " ||");
+      console.log("-------------------------------------------------------------------------------------------------")
     }
+    console.log("-------------------------------------------------------------------------------------------------")
+    console.log("\n \n");
   });
   orderPrompt();
 };
@@ -34,37 +40,44 @@ function orderPrompt() {
       ])
       .then(function (answer) {
         var selectedProduct;
-        var stock;
+        // var stock;
         var found = false;
-        console.log("answer.item_id: " + answer.item_id)
 
         for (var i = 0; i < results.length; i++) {
-          console.log("stocked item id: " + results[i].item_id);
-          console.log("selected item id: " + answer.item_id);
-          if (results[i].item_id == answer.item_id) {
+
+          if ((results[i].item_id) == (answer.item_id)) {
             found = true;
-            selectedProduct = results[i];
-            name = results[i].product_name;
-            stock = results[i].stock_quantity;
-            itemID = results[i].item_id;
-            console.log("name: " + name + " || stock: " + stock);
+            var selectedProduct = results[i];
+            var name = results[i].product_name;
+            var stock = results[i].stock_quantity;
+            var itemID = results[i].item_id;
+            console.log("\n \n")
+            console.log("-------------------------------------------------------------------------------------------------")
+            console.log("SELECTED product: " + name + " || SELECTED item id: " + answer.item_id);
+            console.log("-------------------------------------------------------------------------------------------------")
+            console.log("STOCKED product name: " + name + "quantity available: " + stock + " || STOCKED item id: " + itemID);
+            console.log("-------------------------------------------------------------------------------------------------")
+            console.log("\n \n")
             break;
           }
         }
         if (!found) {
           console.log("not found")
-        };
+        }
 
         // see if product is in stock for quantity desired
         if (stock > answer.units) {
           // const inStock = nowInStock;
-          var nowInStock = ((parseInt(selectedProduct.stock_quantity)) - (parseInt(answer.units)));
-          var sold = ((parseInt(answer.units)) + (parseInt(selectedProduct.sold_units)));
+          var stox = parseInt(selectedProduct.stock_quantity);
+          var count = parseInt(answer.units);
+          var nowInStock = parseInt(stox - count);
+          var sold = (parseInt(selectedProduct.sold_units)) + (parseInt(answer.units));
           // if stock then update db
-          console.log("nowInStock " + nowInStock);
-          console.log("sold: " + sold);
+          console.log("Now In Stock: " + nowInStock + " || Quantity Sold: " + sold);
+          console.log("\n \n");
+
           connection.query(
-            "UPDATE products SET ? AND ? WHERE ?", [{
+            "UPDATE products SET ?, ? WHERE ?", [{
                 stock_quantity: nowInStock
               },
               {
