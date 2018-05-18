@@ -1,3 +1,8 @@
+Screenshots and Video of App in Action: https://github.com/owlRogue/node-MySQL-store-app/commit/e56bb3ab632be2e961465b550023549c8d8f6705
+
+
+
+
 # Node.js & MySQL
 
 ## Overview
